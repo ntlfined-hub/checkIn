@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Check In สถานที่ทำงาน</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body{box-sizing:border-box;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+    .glass{background:rgba(255,255,255,.08);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12)}
+    .input{background:rgba(255,255,255,.06);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.15);color:#fff}
+    .input:focus{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3);box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+    .btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25)}
+    .btn:hover{background:rgba(255,255,255,.18);transform:translateY(-1px)}
+    .pill{background:rgba(255,255,255,.1)}
+
+    /* ✅ ทำให้ dropdown มองเห็นตัวเลือกชัดเจน */
+    select.input option{ color:#111; background:#fff; }
+    /* (บางเบราว์เซอร์ไม่อ่าน Tailwind ใน popup ของ select ให้กำหนดตรงๆไว้เลย) */
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-zinc-900 text-white">
+  <!-- glow bg -->
+  <div class="fixed inset-0 pointer-events-none">
+    <div class="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl bg-white/10"></div>
+    <div class="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl bg-white/10"></div>
+  </div>
+
+  <div class="relative z-10 container mx-auto max-w-xl px-6 py-10">
+    <!-- header -->
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 border border-white/20 mb-5">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+      </div>
+      <h1 class="text-3xl font-bold">Check In</h1>
+      <p class="text-white/80">บันทึก / ดู / แก้ไขตารางงาน</p>
+    </div>
+
+    <!-- checkin form -->
+    <div class="glass rounded-3xl p-6 mb-8">
+      <form id="checkinForm" class="space-y-6">
+        <div>
+          <label class="block text-sm font-semibold mb-2">ผู้ใช้งาน</label>
+          <select id="nameSelect" class="input w-full p-3 rounded-xl outline-none" required>
+            <option value="">เลือกชื่อผู้ใช้</option>
+            <option>Tow</option>
+            <option>Kwan</option>
+            <option>Noi</option>
+            <option>Ray</option>
+            <option>Cap</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold mb-2">ช่วงเวลา</label>
+          <div class="flex pill rounded-2xl p-1">
+            <button type="button" id="fullBtn" class="flex-1 py-2 rounded-xl bg-white/20 font-medium">เต็มวัน</button>
+            <button type="button" id="splitBtn" class="flex-1 py-2 rounded-xl text-white/90 font-medium">แยก AM/PM</button>
+          </div>
+        </div>
+
+        <div id="fullBox">
+          <label class="block text-sm font-semibold mb-2">สถานที่ (ทั้งวัน)</label>
+          <input id="fullLocation" type="text" value="Ari" class="input w-full p-3 rounded-xl outline-none" placeholder="เช่น Ari">
+          <p class="text-xs text-white/70 mt-1">* ถ้าเลือกเต็มวัน ระบบจะบันทึกลง AM และ PM เป็นสถานที่เดียวกันอัตโนมัติ</p>
+        </div>
+
+        <div id="splitBox" class="hidden space-y-4">
+          <div>
+            <label class="block text-sm font-semibold mb-2">🌅 AM</label>
+            <input id="amLocation" type="text" value="Ari" class="input w-full p-3 rounded-xl outline-none" placeholder="สถานที่ช่วงเช้า">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-2">🌆 PM</label>
+            <input id="pmLocation" type="text" value="Ari" class="input w-full p-3 rounded-xl outline-none" placeholder="สถานที่ช่วงบ่าย">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold mb-2">วันที่</label>
+          <input id="dateInput" type="date" class="input w-full p-3 rounded-xl outline-none" required>
+          <p class="text-xs text-white/70 mt-1">เลือกได้เฉพาะวันปัจจุบันขึ้นไป</p>
+        </div>
+
+        <button id="checkinBtn" class="btn w-full py-3 rounded-2xl font-semibold flex items-center justify-center gap-2">
+          <span>Check In</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- view & edit -->
+    <div class="glass rounded-3xl p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <h2 class="text-xl font-semibold">ตารางงานในอนาคต</h2>
+      </div>
+      <div class="flex gap-3 mb-5">
+        <select id="viewName" class="input flex-1 p-3 rounded-xl outline-none">
+          <option value="">เลือกชื่อผู้ใช้</option>
+          <option>Tow</option>
+          <option>Kwan</option>
+          <option>Noi</option>
+          <option>Ray</option>
+          <option>Cap</option>
+        </select>
+        <button id="viewBtn" class="btn px-5 rounded-xl font-semibold">ดูตาราง</button>
+      </div>
+
+      <div id="scheduleWrap" class="hidden">
+        <div id="scheduleList" class="space-y-3"></div>
+      </div>
+    </div>
+
+    <!-- status -->
+    <div id="status" class="hidden mt-6 p-4 rounded-2xl"></div>
+
+    <!-- success popup -->
+    <div id="popup" class="hidden fixed inset-0 z-50 items-center justify-center p-6">
+      <div class="absolute inset-0 bg-black/50"></div>
+      <div class="relative glass rounded-3xl p-6 max-w-sm w-full text-center">
+        <div class="w-14 h-14 rounded-2xl bg-green-500/20 mx-auto mb-4 flex items-center justify-center">
+          <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold mb-2">สำเร็จ</h3>
+        <p id="popupMsg" class="text-white/90 mb-4"></p>
+        <button onclick="closePopup()" class="btn w-full py-2 rounded-xl font-semibold">ตกลง</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ===== CONFIG ===== */
+    const APP_SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxKmlulJgGnv8pUqbbOYlK5mRn6jZ_DdQQCKoJ3dExHWl62mDOPhDR5usWbSpC38gzH/exec';
+
+    /* ===== UI Utils ===== */
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('dateInput').min = today;
+    document.getElementById('dateInput').value = today;
+
+    function toast(msg, type='info'){
+      const el = document.getElementById('status');
+      el.className = `mt-6 p-4 rounded-2xl ${type==='error'?'bg-red-500/20 border border-red-500/40':'bg-white/10 border border-white/20'}`;
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      setTimeout(()=>el.classList.add('hidden'), 4500);
+    }
+    function openPopup(text){ document.getElementById('popupMsg').textContent = text; document.getElementById('popup').classList.remove('hidden'); document.getElementById('popup').classList.add('flex');}
+    function closePopup(){ document.getElementById('popup').classList.add('hidden'); document.getElementById('popup').classList.remove('flex'); }
+
+    /* ✅ ปุ่มโหลดแบบมีสปินเนอร์ */
+    function setBtnLoading(btn, isLoading, labelWhenDone='เสร็จ'){
+      if(isLoading){
+        btn.disabled = true;
+        btn.dataset.prev = btn.innerHTML;
+        btn.innerHTML = `
+          <span class="inline-flex items-center gap-2">
+            <svg class="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            กำลังบันทึก...
+          </span>`;
+      }else{
+        btn.disabled = false;
+        btn.innerHTML = btn.dataset.prev || labelWhenDone;
+      }
+    }
+
+    /* ===== Toggle AM/PM ===== */
+    let splitMode = false;
+    const fullBtn = document.getElementById('fullBtn');
+    const splitBtn = document.getElementById('splitBtn');
+    const fullBox = document.getElementById('fullBox');
+    const splitBox = document.getElementById('splitBox');
+
+    fullBtn.addEventListener('click', ()=>{
+      splitMode = false;
+      fullBtn.classList.add('bg-white/20'); splitBtn.classList.remove('bg-white/20');
+      fullBox.classList.remove('hidden'); splitBox.classList.add('hidden');
+    });
+    splitBtn.addEventListener('click', ()=>{
+      splitMode = true;
+      splitBtn.classList.add('bg-white/20'); fullBtn.classList.remove('bg-white/20');
+      splitBox.classList.remove('hidden'); fullBox.classList.add('hidden');
+    });
+
+    /* ===== API helper (FormData, no CORS preflight) ===== */
+    async function callAPI(action, payload={}){
+      const fd = new FormData();
+      fd.append('action', action);
+      fd.append('payload', JSON.stringify(payload));
+      const res = await fetch(APP_SCRIPT_WEBAPP_URL, { method: 'POST', body: fd });
+      const text = await res.text();
+      try { return JSON.parse(text); } catch { return { ok:false, error:'Invalid JSON', raw:text }; }
+    }
+
+    /* ===== Submit Check-in ===== */
+    const checkinBtn = document.getElementById('checkinBtn');
+    document.getElementById('checkinForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const name = document.getElementById('nameSelect').value.trim();
+      const date = document.getElementById('dateInput').value;
+      if(!name || !date){ toast('กรุณากรอกข้อมูลให้ครบถ้วน','error'); return; }
+      if(date < today){ toast('ไม่อนุญาตให้บันทึกย้อนหลัง','error'); return; }
+
+      let payload;
+      if(!splitMode){
+        const loc = document.getElementById('fullLocation').value.trim();
+        if(!loc){ toast('กรุณากรอกสถานที่ (เต็มวัน)','error'); return; }
+        payload = { name, date, split:false, location:loc }; // GAS จะเขียน AM=PM ให้อัตโนมัติ
+      }else{
+        const am = document.getElementById('amLocation').value.trim();
+        const pm = document.getElementById('pmLocation').value.trim();
+        if(!am || !pm){ toast('กรุณากรอกสถานที่ทั้ง AM และ PM','error'); return; }
+        payload = { name, date, split:true, amLoc:am, pmLoc:pm };
+      }
+
+      try{
+        setBtnLoading(checkinBtn, true);
+        const {ok, upsert, error} = await callAPI('create', payload);
+        if(!ok){ toast(error || 'บันทึกไม่สำเร็จ','error'); return; }
+        openPopup(upsert ? 'อัปเดตข้อมูลของวันนี้เรียบร้อย' : 'บันทึกเรียบร้อย');
+        // reset
+        document.getElementById('nameSelect').value = '';
+        document.getElementById('fullLocation').value = 'Ari';
+        document.getElementById('amLocation').value = 'Ari';
+        document.getElementById('pmLocation').value = 'Ari';
+        document.getElementById('dateInput').value = today;
+      }catch(err){
+        console.error(err); toast('เกิดข้อผิดพลาดในการเชื่อมต่อ','error');
+      }finally{
+        setBtnLoading(checkinBtn, false, 'Check In');
+      }
+    });
+
+    /* ===== View schedule ===== */
+    document.getElementById('viewBtn').addEventListener('click', ()=> {
+      const name = document.getElementById('viewName').value.trim();
+      if(!name){ toast('กรุณาเลือกชื่อผู้ใช้','error'); return; }
+      renderSchedule(name);
+    });
+
+    async function renderSchedule(name){
+      const wrap = document.getElementById('scheduleWrap');
+      const list = document.getElementById('scheduleList');
+      wrap.classList.remove('hidden');
+      list.innerHTML = `<div class="text-white/80">กำลังโหลด...</div>`;
+      try{
+        const {ok, items, error} = await callAPI('listFuture', { name, from: today });
+        if(!ok){ list.innerHTML = `<div class="text-red-300">${error||'โหลดไม่สำเร็จ'}</div>`; return; }
+        if(!items || !items.length){
+          list.innerHTML = `<div class="text-white/80">ไม่มีตารางงานในอนาคต</div>`;
+          return;
+        }
+        list.innerHTML = items.map(row => renderItem(row)).join('');
+      }catch(err){
+        console.error(err);
+        list.innerHTML = `<div class="text-white/80">เกิดข้อผิดพลาดในการเชื่อมต่อ</div>`;
+      }
+    }
+
+    function renderItem(entry){
+      const locationDisplay = entry.split
+        ? `<div class="text-sm text-white/90">🌅 AM: ${entry.am || '-'}</div>
+           <div class="text-sm text-white/90">🌆 PM: ${entry.pm || '-'}</div>`
+        : `<div class="text-sm text-white/90">${entry.location || entry.am || '-'}</div>`;
+
+      return `
+        <div class="rounded-2xl p-4 bg-white/5 border border-white/10">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-semibold">${formatThai(entry.date)}</div>
+              ${locationDisplay}
+            </div>
+            <button class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20" onclick="openEdit('${entry.rowId}', ${entry.split ? 'true':'false'}, '${entry.date}', '${escapeHTML(entry.am||'')}', '${escapeHTML(entry.pm||'')}', '${escapeHTML(entry.location||'')}')">แก้ไข</button>
+          </div>
+          <div id="edit-${entry.rowId}" class="hidden mt-4 pt-4 border-t border-white/10"></div>
+        </div>`;
+    }
+
+    function formatThai(iso){
+      const d = new Date(iso);
+      const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+      return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()+543}`;
+    }
+
+    function escapeHTML(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+    /* ===== Edit UI & Save ===== */
+    window.openEdit = function(rowId, split, date, am, pm, location){
+      const box = document.getElementById(`edit-${rowId}`);
+      const isSplit = !!split;
+      box.innerHTML = `
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm font-semibold mb-1">วันที่</label>
+            <input type="date" id="ed-date-${rowId}" class="input w-full p-3 rounded-xl" value="${date}" min="${today}">
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold mb-1">ช่วงเวลา</label>
+            <div class="flex pill rounded-2xl p-1">
+              <button type="button" id="ed-full-${rowId}" class="flex-1 py-2 rounded-xl ${!isSplit?'bg-white/20':''}">เต็มวัน</button>
+              <button type="button" id="ed-split-${rowId}" class="flex-1 py-2 rounded-xl ${isSplit?'bg-white/20':''}">แยก AM/PM</button>
+            </div>
+          </div>
+
+          <div id="ed-fullBox-${rowId}" class="${isSplit?'hidden':''}">
+            <label class="block text-sm font-semibold mb-1">สถานที่ (ทั้งวัน)</label>
+            <input type="text" id="ed-fullLoc-${rowId}" class="input w-full p-3 rounded-xl" value="${location || am || ''}">
+            <p class="text-xs text-white/70 mt-1">* บันทึกแล้วจะตั้งค่า AM และ PM เป็นสถานที่เดียวกัน</p>
+          </div>
+
+          <div id="ed-splitBox-${rowId}" class="${isSplit?'':'hidden'} space-y-3">
+            <div>
+              <label class="block text-sm font-semibold mb-1">🌅 AM</label>
+              <input type="text" id="ed-am-${rowId}" class="input w-full p-3 rounded-xl" value="${am || ''}">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1">🌆 PM</label>
+              <input type="text" id="ed-pm-${rowId}" class="input w-full p-3 rounded-xl" value="${pm || ''}">
+            </div>
+          </div>
+
+          <div class="flex gap-3 pt-2">
+            <button id="saveBtn-${rowId}" class="btn flex-1 py-2 rounded-xl">บันทึก</button>
+            <button class="bg-white/10 hover:bg-white/20 flex-1 py-2 rounded-xl" onclick="closeEdit('${rowId}')">ยกเลิก</button>
+          </div>
+        </div>
+      `;
+      box.classList.remove('hidden');
+
+      // toggle inside editor
+      document.getElementById(`ed-full-${rowId}`).onclick = ()=>{
+        document.getElementById(`ed-full-${rowId}`).classList.add('bg-white/20');
+        document.getElementById(`ed-split-${rowId}`).classList.remove('bg-white/20');
+        document.getElementById(`ed-fullBox-${rowId}`).classList.remove('hidden');
+        document.getElementById(`ed-splitBox-${rowId}`).classList.add('hidden');
+      };
+      document.getElementById(`ed-split-${rowId}`).onclick = ()=>{
+        document.getElementById(`ed-split-${rowId}`).classList.add('bg-white/20');
+        document.getElementById(`ed-full-${rowId}`).classList.remove('bg-white/20');
+        document.getElementById(`ed-splitBox-${rowId}`).classList.remove('hidden');
+        document.getElementById(`ed-fullBox-${rowId}`).classList.add('hidden');
+      };
+
+      // ✅ save with loading
+      document.getElementById(`saveBtn-${rowId}`).onclick = async (e)=>{
+        e.preventDefault();
+        await saveEdit(rowId);
+      };
+    };
+
+    window.closeEdit = function(rowId){
+      document.getElementById(`edit-${rowId}`).classList.add('hidden');
+    };
+
+    async function saveEdit(rowId){
+      const date = document.getElementById(`ed-date-${rowId}`).value;
+      if(!date){ toast('กรุณาเลือกวันที่','error'); return; }
+      if(date < today){ toast('ไม่สามารถตั้งย้อนหลังได้','error'); return; }
+
+      // check which box visible
+      const fullVisible = !document.getElementById(`ed-fullBox-${rowId}`).classList.contains('hidden');
+      const saveBtn = document.getElementById(`saveBtn-${rowId}`);
+      let payload = { rowId, date };
+
+      if(fullVisible){
+        const loc = document.getElementById(`ed-fullLoc-${rowId}`).value.trim();
+        if(!loc){ toast('กรุณากรอกสถานที่ (เต็มวัน)','error'); return; }
+        payload.split = false;
+        payload.location = loc; // GAS จะ set AM=PM=loc ให้อัตโนมัติ
+      }else{
+        const am = document.getElementById(`ed-am-${rowId}`).value.trim();
+        const pm = document.getElementById(`ed-pm-${rowId}`).value.trim();
+        if(!am || !pm){ toast('กรุณากรอกสถานที่ทั้ง AM และ PM','error'); return; }
+        payload.split = true;
+        payload.amLoc = am; payload.pmLoc = pm;
+      }
+
+      try{
+        setBtnLoading(saveBtn, true);
+        const {ok, error} = await callAPI('update', payload);
+        if(!ok){ toast(error || 'แก้ไขไม่สำเร็จ','error'); return; }
+        openPopup('แก้ไขข้อมูลเรียบร้อยแล้ว');
+        // refresh
+        const name = document.getElementById('viewName').value.trim();
+        if(name) renderSchedule(name);
+      }catch(err){
+        console.error(err); toast('เกิดข้อผิดพลาดในการเชื่อมต่อ','error');
+      }finally{
+        setBtnLoading(saveBtn, false, 'บันทึก');
+      }
+    }
+  </script>
+</body>
+</html>
