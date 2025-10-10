@@ -11,13 +11,40 @@
     .glass{background:rgba(255,255,255,.08);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12)}
     .input{background:rgba(255,255,255,.06);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.15);color:#fff}
     .input:focus{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3);box-shadow:0 0 0 3px rgba(255,255,255,.08)}
-    .btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25)}
+    .btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);transition:.2s}
     .btn:hover{background:rgba(255,255,255,.18);transform:translateY(-1px)}
     .pill{background:rgba(255,255,255,.1)}
 
-    /* ✅ ทำให้ dropdown มองเห็นตัวเลือกชัดเจน */
+    /* ✅ ปุ่ม Check In ให้เด่นขึ้น */
+    .btn-cta{
+      background: linear-gradient(135deg,#10b981,#16a34a); /* emerald */
+      border:0;
+      box-shadow: 0 12px 24px rgba(16,185,129,.25);
+    }
+    .btn-cta:hover{
+      transform: translateY(-1.5px) scale(1.01);
+      box-shadow: 0 16px 30px rgba(16,185,129,.32);
+    }
+    .btn-cta:disabled{
+      opacity:.8; filter:saturate(.85); box-shadow:none;
+    }
+
+    /* ✅ ทำให้ dropdown เห็นตัวเลือกชัดเจน */
     select.input option{ color:#111; background:#fff; }
-    /* (บางเบราว์เซอร์ไม่อ่าน Tailwind ใน popup ของ select ให้กำหนดตรงๆไว้เลย) */
+
+    /* ✅ Date input: อย่าให้ตัวหนังสือชนขอบ (โดยเฉพาะ iOS Safari) */
+    .input[type="date"]{
+      padding-left: 1rem;
+      padding-right: 1rem;
+      border-radius: 0.75rem;
+    }
+    .input[type="date"]::-webkit-datetime-edit{ padding:.35rem .5rem; }
+    .input[type="date"]::-webkit-datetime-edit-fields-wrapper{ padding:0 .25rem; }
+    .input[type="date"]::-webkit-datetime-edit-text{ padding:0 .2rem; }
+    .input[type="date"]::-webkit-calendar-picker-indicator{
+      padding-right:.5rem;
+      filter: invert(1) opacity(.8);
+    }
   </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-zinc-900 text-white">
@@ -36,7 +63,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
         </svg>
       </div>
-      <h1 class="text-3xl font-bold">Check In</h1>
+      <h1 class="text-3xl font-bold">Check In Fin-ed</h1>
       <p class="text-white/80">บันทึก / ดู / แก้ไขตารางงาน</p>
     </div>
 
@@ -86,7 +113,7 @@
           <p class="text-xs text-white/70 mt-1">เลือกได้เฉพาะวันปัจจุบันขึ้นไป</p>
         </div>
 
-        <button id="checkinBtn" class="btn w-full py-3 rounded-2xl font-semibold flex items-center justify-center gap-2">
+        <button id="checkinBtn" class="btn btn-cta w-full py-3 rounded-2xl font-semibold flex items-center justify-center gap-2">
           <span>Check In</span>
         </button>
       </form>
@@ -106,7 +133,9 @@
           <option>Ray</option>
           <option>Cap</option>
         </select>
-        <button id="viewBtn" class="btn px-5 rounded-xl font-semibold">ดูตาราง</button>
+        <button id="viewBtn" class="btn px-5 rounded-xl font-semibold flex items-center justify-center gap-2">
+          <span>ดูตาราง</span>
+        </button>
       </div>
 
       <div id="scheduleWrap" class="hidden">
@@ -152,8 +181,8 @@
     function openPopup(text){ document.getElementById('popupMsg').textContent = text; document.getElementById('popup').classList.remove('hidden'); document.getElementById('popup').classList.add('flex');}
     function closePopup(){ document.getElementById('popup').classList.add('hidden'); document.getElementById('popup').classList.remove('flex'); }
 
-    /* ✅ ปุ่มโหลดแบบมีสปินเนอร์ */
-    function setBtnLoading(btn, isLoading, labelWhenDone='เสร็จ'){
+    /* ✅ ปุ่มโหลดแบบสปินเนอร์ (กำหนดข้อความได้) */
+    function setBtnLoading(btn, isLoading, doneLabel='เสร็จ', loadingLabel='กำลังทำงาน...'){
       if(isLoading){
         btn.disabled = true;
         btn.dataset.prev = btn.innerHTML;
@@ -163,11 +192,11 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
             </svg>
-            กำลังบันทึก...
+            ${loadingLabel}
           </span>`;
       }else{
         btn.disabled = false;
-        btn.innerHTML = btn.dataset.prev || labelWhenDone;
+        btn.innerHTML = btn.dataset.prev || doneLabel;
       }
     }
 
@@ -221,7 +250,7 @@
       }
 
       try{
-        setBtnLoading(checkinBtn, true);
+        setBtnLoading(checkinBtn, true, 'Check In', 'กำลังบันทึก...');
         const {ok, upsert, error} = await callAPI('create', payload);
         if(!ok){ toast(error || 'บันทึกไม่สำเร็จ','error'); return; }
         openPopup(upsert ? 'อัปเดตข้อมูลของวันนี้เรียบร้อย' : 'บันทึกเรียบร้อย');
@@ -238,11 +267,17 @@
       }
     });
 
-    /* ===== View schedule ===== */
-    document.getElementById('viewBtn').addEventListener('click', ()=> {
+    /* ===== View schedule (เพิ่มสปินเนอร์) ===== */
+    const viewBtn = document.getElementById('viewBtn');
+    document.getElementById('viewBtn').addEventListener('click', async ()=>{
       const name = document.getElementById('viewName').value.trim();
       if(!name){ toast('กรุณาเลือกชื่อผู้ใช้','error'); return; }
-      renderSchedule(name);
+      setBtnLoading(viewBtn, true, 'ดูตาราง', 'กำลังโหลด...');
+      try{
+        await renderSchedule(name);
+      }finally{
+        setBtnLoading(viewBtn, false, 'ดูตาราง');
+      }
     });
 
     async function renderSchedule(name){
@@ -349,7 +384,7 @@
         document.getElementById(`ed-fullBox-${rowId}`).classList.add('hidden');
       };
 
-      // ✅ save with loading
+      // save with loading
       document.getElementById(`saveBtn-${rowId}`).onclick = async (e)=>{
         e.preventDefault();
         await saveEdit(rowId);
@@ -365,7 +400,6 @@
       if(!date){ toast('กรุณาเลือกวันที่','error'); return; }
       if(date < today){ toast('ไม่สามารถตั้งย้อนหลังได้','error'); return; }
 
-      // check which box visible
       const fullVisible = !document.getElementById(`ed-fullBox-${rowId}`).classList.contains('hidden');
       const saveBtn = document.getElementById(`saveBtn-${rowId}`);
       let payload = { rowId, date };
@@ -384,11 +418,10 @@
       }
 
       try{
-        setBtnLoading(saveBtn, true);
+        setBtnLoading(saveBtn, true, 'บันทึก', 'กำลังบันทึก...');
         const {ok, error} = await callAPI('update', payload);
         if(!ok){ toast(error || 'แก้ไขไม่สำเร็จ','error'); return; }
         openPopup('แก้ไขข้อมูลเรียบร้อยแล้ว');
-        // refresh
         const name = document.getElementById('viewName').value.trim();
         if(name) renderSchedule(name);
       }catch(err){
