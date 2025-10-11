@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Check In สถานที่ทำงาน</title>
+  <title>Check In Fin-ed</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -16,137 +16,250 @@
     }
     body{box-sizing:border-box;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
     .glass{background:rgba(255,255,255,.08);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12)}
+    .card{ border-radius:var(--card-radius); }
+
     .input{
       background:rgba(255,255,255,.06);
       backdrop-filter:blur(10px);
       border:1px solid rgba(255,255,255,.15);
-      color:#fff; padding:var(--input-padding-y) var(--input-padding-x);
-      border-radius:var(--input-radius); font-size:var(--input-font-size);
+      color:#fff;
+      padding:var(--input-padding-y) var(--input-padding-x);
+      border-radius:var(--input-radius);
+      font-size:var(--input-font-size);
+      width:100%;
     }
     .input:focus{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3);box-shadow:0 0 0 3px rgba(255,255,255,.08);outline:none}
-    .btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);transition:.2s;border-radius:var(--input-radius)}
-    .btn:hover{background:rgba(255,255,255,.18);transform:translateY(-1px)}
-    .pill{background:rgba(255,255,255,.1);border-radius:calc(var(--input-radius) + .4rem)}
-    .btn-cta{background:linear-gradient(135deg,#10b981,#16a34a);border:0;box-shadow:0 12px 24px rgba(16,185,129,.25)}
-    .btn-cta:hover{transform:translateY(-1.5px) scale(1.01);box-shadow:0 16px 30px rgba(16,185,129,.32)}
-    .btn-cta:disabled{opacity:.85;filter:saturate(.85);box-shadow:none}
-    select.input option{ color:#111; background:#fff; }
-    .input[type="date"]{ padding:var(--input-padding-y) var(--input-padding-x); font-size:var(--input-font-size); line-height:1.65; border-radius:var(--input-radius); -webkit-appearance:none; appearance:none; }
+    select.input option{ color:#111; background:#fff; } /* ให้มองเห็นตัวเลือกใน dropdown */
+
+    /* date input สูงโปร่ง + ไม่ชนขอบ (iOS) */
+    .input[type="date"], .input[type="time"]{ -webkit-appearance:none; appearance:none; line-height:1.65; }
     .input[type="date"]::-webkit-datetime-edit{ padding:.35rem .5rem; }
     .input[type="date"]::-webkit-datetime-edit-fields-wrapper{ padding:0 .25rem; }
     .input[type="date"]::-webkit-datetime-edit-text{ padding:0 .2rem; }
-    .input[type="date"]::-webkit-calendar-picker-indicator{ padding-right:.5rem; filter: invert(1) opacity(.85); }
-    .card{ border-radius:var(--card-radius); }
+    .input[type="date"]::-webkit-calendar-picker-indicator,
+    .input[type="time"]::-webkit-calendar-picker-indicator{ padding-right:.5rem; filter: invert(1) opacity(.85); }
+
+    .btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);transition:.2s;border-radius:var(--input-radius)}
+    .btn:hover{background:rgba(255,255,255,.18);transform:translateY(-1px)}
+    .btn-cta{background:linear-gradient(135deg,#10b981,#16a34a);border:0;box-shadow:0 12px 24px rgba(16,185,129,.25)}
+    .btn-cta:hover{transform:translateY(-1.5px) scale(1.01);box-shadow:0 16px 30px rgba(16,185,129,.32)}
+    .btn-cta:disabled{opacity:.85;filter:saturate(.85);box-shadow:none}
+    .pill{background:rgba(255,255,255,.1);border-radius:calc(var(--input-radius) + .4rem)}
     .chip{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); }
     .chip:hover{ background:rgba(255,255,255,.12); }
     .mini-btn{ background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25); }
     .mini-btn:hover{ background:rgba(255,255,255,.18); }
+
+    /* Tabs */
+    .tab-btn{border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06)}
+    .tab-btn[aria-selected="true"]{ background:rgba(16,185,129,.18); border-color:rgba(16,185,129,.4) }
+    .tab-panel{ display:none }
+    .tab-panel.active{ display:block }
   </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-zinc-900 text-white">
+  <!-- background glow -->
   <div class="fixed inset-0 pointer-events-none">
     <div class="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl bg-white/10"></div>
     <div class="absolute -bottom-40 -left-40 w-80 h-80 rounded-full blur-3xl bg-white/10"></div>
   </div>
 
-  <div class="relative z-10 container mx-auto max-w-xl px-6 py-10">
-    <div class="text-center mb-10">
+  <div class="relative z-10 container mx-auto max-w-4xl px-6 py-10">
+    <!-- header -->
+    <div class="text-center mb-8">
       <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 border border-white/20 mb-5">
         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
         </svg>
       </div>
-      <h1 class="text-3xl font-bold tracking-tight">Check In Fin-ed</h1>
-      <p class="text-white/80">บันทึก · ดู · แก้ไข · สร้างหลายวัน · ตัวช่วยโลเคชัน</p>
+      <h1 class="text-3xl font-bold tracking-tight">Check In</h1>
+      <p class="text-white/80">บันทึก · สร้างหลายวัน · ดู/แก้ไข · ส่งเข้าไลน์/ตั้งเวลา</p>
     </div>
 
-    <!-- checkin form -->
-    <div class="glass card p-6 mb-8">
-      <form id="checkinForm" class="space-y-6">
-        <div>
-          <label class="block text-sm font-semibold mb-2">ผู้ใช้งาน</label>
-          <select id="nameSelect" class="input w-full" required>
-            <option value="">เลือกชื่อผู้ใช้</option>
-            <option>Tow</option><option>Kwan</option><option>Noi</option><option>Ray</option><option>Cap</option>
-          </select>
-        </div>
+    <!-- TABS -->
+    <div class="glass card p-2 mb-6">
+      <div role="tablist" class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <button id="tab-1" role="tab" class="tab-btn rounded-xl py-3 font-semibold" aria-selected="true">Check In</button>
+        <button id="tab-2" role="tab" class="tab-btn rounded-xl py-3 font-semibold" aria-selected="false">ตารางงานในอนาคต</button>
+        <button id="tab-3" role="tab" class="tab-btn rounded-xl py-3 font-semibold" aria-selected="false">ตั้งเวลา Check-in</button>
+      </div>
+    </div>
 
-        <div>
-          <label class="block text-sm font-semibold mb-2">ช่วงเวลา</label>
-          <div class="flex pill p-1">
-            <button type="button" id="fullBtn" class="flex-1 py-2 rounded-xl bg-white/20 font-medium">เต็มวัน</button>
-            <button type="button" id="splitBtn" class="flex-1 py-2 rounded-xl text-white/90 font-medium">แยก AM/PM</button>
+    <!-- ================= TAB 1: Check-in + bulk ================= -->
+    <section id="panel-1" class="tab-panel active">
+      <!-- form -->
+      <div class="glass card p-6 mb-8">
+        <form id="checkinForm" class="space-y-6">
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold mb-2">ผู้ใช้งาน</label>
+              <select id="nameSelect" class="input" required>
+                <option value="">เลือกชื่อผู้ใช้</option>
+                <option>Tow</option><option>Kwan</option><option>Noi</option><option>Ray</option><option>Cap</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2">วันที่</label>
+              <input id="dateInput" type="date" class="input" required>
+              <p class="text-xs text-white/70 mt-2">เลือกได้เฉพาะวันปัจจุบันขึ้นไป</p>
+            </div>
           </div>
-        </div>
 
-        <div id="fullBox">
-          <label class="block text-sm font-semibold mb-2">สถานที่ (ทั้งวัน)</label>
-          <input id="fullLocation" type="text" value="Ari" class="input w-full" placeholder="เช่น Ari">
-          <p class="text-xs text-white/70 mt-2">* ถ้าเลือกเต็มวัน ระบบจะบันทึก AM และ PM เป็นสถานที่เดียวกันอัตโนมัติ</p>
-        </div>
-
-        <div id="splitBox" class="hidden space-y-4">
           <div>
-            <label class="block text-sm font-semibold mb-2">🌅 AM</label>
-            <input id="amLocation" type="text" value="Ari" class="input w-full" placeholder="สถานที่ช่วงเช้า">
+            <label class="block text-sm font-semibold mb-2">ช่วงเวลา</label>
+            <div class="flex pill p-1">
+              <button type="button" id="fullBtn" class="flex-1 py-2 rounded-xl bg-white/20 font-medium">เต็มวัน</button>
+              <button type="button" id="splitBtn" class="flex-1 py-2 rounded-xl text-white/90 font-medium">แยก AM/PM</button>
+            </div>
+          </div>
+
+          <div id="fullBox">
+            <label class="block text-sm font-semibold mb-2">สถานที่ (ทั้งวัน)</label>
+            <input id="fullLocation" type="text" value="Ari" class="input" placeholder="เช่น Ari">
+            <p class="text-xs text-white/70 mt-2">* ถ้าเลือกเต็มวัน ระบบจะบันทึก AM และ PM เป็นสถานที่เดียวกันอัตโนมัติ</p>
+          </div>
+
+          <div id="splitBox" class="hidden space-y-4">
+            <div>
+              <label class="block text-sm font-semibold mb-2">🌅 AM</label>
+              <input id="amLocation" type="text" value="Ari" class="input" placeholder="สถานที่ช่วงเช้า">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2">🌆 PM</label>
+              <input id="pmLocation" type="text" value="Ari" class="input" placeholder="สถานที่ช่วงบ่าย">
+            </div>
+          </div>
+
+          <!-- suggestions -->
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-sm font-semibold">ตัวช่วยจากเพื่อนในวันที่เลือก</span>
+              <span id="suggestLoading" class="text-xs text-white/70 hidden">กำลังโหลด…</span>
+            </div>
+            <div id="suggestWrap" class="grid grid-cols-1 gap-2"></div>
+            <p id="suggestEmpty" class="text-xs text-white/60 hidden">ยังไม่มีใครบันทึกในวันนี้</p>
+          </div>
+
+          <button id="checkinBtn" class="btn btn-cta w-full py-3 font-semibold flex items-center justify-center gap-2">
+            <span>Check In</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- bulk create -->
+      <div class="glass card p-6 mb-8">
+        <h2 class="text-lg font-semibold mb-2">สร้างหลายวัน (โหมดขี้เกียจ)</h2>
+        <p class="text-white/70 text-sm mb-4">ใช้ข้อมูล “ผู้ใช้งาน” และ “ช่วงเวลา/สถานที่” จากฟอร์มด้านบน</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+          <button id="bulkThisWeek" class="btn px-4 py-3 font-semibold flex items-center justify-center gap-2">
+            <span>สร้าง จ–ศ สัปดาห์นี้</span>
+          </button>
+          <button id="bulkNextWeek" class="btn px-4 py-3 font-semibold flex items-center justify-center gap-2">
+            <span>สร้าง จ–ศ สัปดาห์หน้า</span>
+          </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+          <div>
+            <label class="block text-sm font-semibold mb-2">เริ่มวันที่</label>
+            <input id="rangeStart" type="date" class="input">
           </div>
           <div>
-            <label class="block text-sm font-semibold mb-2">🌆 PM</label>
-            <input id="pmLocation" type="text" value="Ari" class="input w-full" placeholder="สถานที่ช่วงบ่าย">
+            <label class="block text-sm font-semibold mb-2">ถึงวันที่</label>
+            <input id="rangeEnd" type="date" class="input">
           </div>
         </div>
+        <div class="mt-3">
+          <button id="bulkRange" class="btn px-5 py-3 font-semibold flex items-center justify-center gap-2">
+            <span>บันทึกแบบช่วงวันที่</span>
+          </button>
+        </div>
+        <p class="text-xs text-white/70 mt-3">* โหมด จ–ศ จะข้ามเสาร์–อาทิตย์อัตโนมัติ | โหมดช่วงวันที่จะบันทึกทุกวันในช่วงนั้น</p>
+      </div>
+    </section>
 
-        <!-- ✅ ตัวช่วยโลเคชัน -->
-        <div>
-          <div class="flex items-center gap-2 mb-2">
-            <span class="text-sm font-semibold">ตัวช่วยจากเพื่อนในวันที่เลือก</span>
-            <span id="suggestLoading" class="text-xs text-white/70 hidden">กำลังโหลด…</span>
+    <!-- ================= TAB 2: Future schedule ================= -->
+    <section id="panel-2" class="tab-panel">
+      <div class="glass card p-6">
+        <div class="mb-5">
+  <h2 class="text-xl font-semibold mb-3">ตารางงานในอนาคต</h2>
+
+  <!-- ให้ select กับปุ่มอยู่คนละบรรทัด และกว้างเท่ากัน -->
+  <div class="w-full">
+    <select id="viewName" class="input w-full mb-3">
+      <option value="">เลือกชื่อผู้ใช้</option>
+      <option>Tow</option><option>Kwan</option><option>Noi</option><option>Ray</option><option>Cap</option>
+    </select>
+
+    <!-- เพิ่ม .btn-equal เพื่อให้ขนาดเท่ากับ input -->
+    <button id="viewBtn" class="btn btn-equal w-full font-semibold block">
+      ดูตาราง
+    </button>
+  </div>
+</div>
+
+<div id="scheduleWrap" class="hidden">
+  <div id="scheduleList" class="space-y-3"></div>
+</div>
+    </section>
+
+    <!-- ================= TAB 3: Send to LINE ================= -->
+    <section id="panel-3" class="tab-panel">
+      <div class="glass card p-6">
+        <h2 class="text-xl font-semibold mb-4">ส่ง Check-in เข้าไลน์</h2>
+
+        <div class="grid lg:grid-cols-2 gap-6">
+          <!-- left: send now -->
+          <div class="rounded-2xl p-5 bg-white/5 border border-white/10">
+            <h3 class="font-semibold mb-3">ส่งทันที</h3>
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold mb-2">เลือก “วันที่” ที่ต้องการสรุป</label>
+                <input id="sendDateInput" type="date" class="input">
+              </div>
+              <div class="sm:pt-7">
+                <button id="sendNowBtn" class="btn w-full py-3 font-semibold flex items-center justify-center gap-2">
+                  <span>ส่งเข้าไลน์เดี๋ยวนี้</span>
+                </button>
+              </div>
+            </div>
+            <p class="text-xs text-white/60 mt-2">จะส่งสรุปของวันที่เลือกไปยังกลุ่มที่ผูกไว้ (/bind)</p>
           </div>
-          <div id="suggestWrap" class="grid grid-cols-1 gap-2"></div>
-          <p id="suggestEmpty" class="text-xs text-white/60 hidden">ยังไม่มีใครบันทึกในวันนี้</p>
+
+          <!-- right: schedule -->
+          <div class="rounded-2xl p-5 bg-white/5 border border-white/10">
+            <h3 class="font-semibold mb-3">ตั้งเวลาส่งอัตโนมัติ</h3>
+            <div class="grid sm:grid-cols-3 gap-3 items-end mb-4">
+              <label class="flex items-center gap-2 sm:col-span-1">
+                <input type="checkbox" id="schedEnabled" class="accent-emerald-400">
+                <span>เปิดใช้งาน</span>
+              </label>
+              <div class="sm:col-span-2">
+                <label class="block text-sm font-semibold mb-2">เวลา (HH:mm)</label>
+                <input type="time" id="schedTime" class="input" value="08:30">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <div class="text-sm mb-2 font-medium">เลือกวันในสัปดาห์</div>
+              <div id="weekdayWrap" class="grid grid-cols-7 gap-1 text-center"></div>
+            </div>
+
+            <label class="flex items-center gap-2 mb-4">
+              <input type="checkbox" id="schedSkipHolidays" class="accent-emerald-400" checked>
+              <span class="text-sm">ข้ามวันหยุด (ชีต Holidays)</span>
+            </label>
+
+            <div class="flex flex-col sm:flex-row gap-3">
+              <button id="saveSchedBtn" class="btn flex-1 py-3 font-semibold">บันทึกตารางส่ง</button>
+              <button id="reloadSchedBtn" class="btn sm:w-32 py-3 font-semibold">รีเฟรช</button>
+            </div>
+
+            <div id="schedStatus" class="text-xs text-white/70 mt-3"></div>
+          </div>
         </div>
-
-        <div>
-          <label class="block text-sm font-semibold mb-2">วันที่</label>
-          <input id="dateInput" type="date" class="input w-full" required>
-          <p class="text-xs text-white/70 mt-2">เลือกได้เฉพาะวันปัจจุบันขึ้นไป</p>
-        </div>
-
-        <button id="checkinBtn" class="btn btn-cta w-full py-3 font-semibold flex items-center justify-center gap-2">
-          <span>Check In</span>
-        </button>
-      </form>
-    </div>
-
-    <!-- Lazy mode (Bulk) -->
-    <div class="glass card p-6 mb-8">
-      <h2 class="text-lg font-semibold mb-2">สร้างหลายวัน (โหมดขี้เกียจ)</h2>
-      <p class="text-white/70 text-sm mb-4">ใช้ข้อมูล “ผู้ใช้งาน” และ “ช่วงเวลา/สถานที่” จากฟอร์มด้านบน</p>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-        <button id="bulkThisWeek" class="btn px-4 py-3 font-semibold flex items-center justify-center gap-2"><span>สร้าง จ–ศ สัปดาห์นี้</span></button>
-        <button id="bulkNextWeek" class="btn px-4 py-3 font-semibold flex items-center justify-center gap-2"><span>สร้าง จ–ศ สัปดาห์หน้า</span></button>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
-        <div><label class="block text-sm font-semibold mb-2">เริ่มวันที่</label><input id="rangeStart" type="date" class="input w-full"></div>
-        <div><label class="block text-sm font-semibold mb-2">ถึงวันที่</label><input id="rangeEnd" type="date" class="input w-full"></div>
-      </div>
-      <div class="mt-3"><button id="bulkRange" class="btn px-5 py-3 font-semibold flex items-center justify-center gap-2"><span>บันทึกแบบช่วงวันที่</span></button></div>
-      <p class="text-xs text-white/70 mt-3">* โหมด จ–ศ จะข้ามเสาร์–อาทิตย์อัตโนมัติ | โหมดช่วงวันที่จะบันทึกทุกวันในช่วงนั้น</p>
-    </div>
-
-    <!-- view & edit -->
-    <div class="glass card p-6">
-      <div class="flex items-center gap-3 mb-4"><h2 class="text-xl font-semibold">ตารางงานในอนาคต</h2></div>
-      <div class="flex gap-3 mb-5">
-        <select id="viewName" class="input flex-1">
-          <option value="">เลือกชื่อผู้ใช้</option>
-          <option>Tow</option><option>Kwan</option><option>Noi</option><option>Ray</option><option>Cap</option>
-        </select>
-        <button id="viewBtn" class="btn px-5 font-semibold flex items-center justify-center gap-2"><span>ดูตาราง</span></button>
-      </div>
-      <div id="scheduleWrap" class="hidden"><div id="scheduleList" class="space-y-3"></div></div>
-    </div>
+    </section>
 
     <!-- status & popup -->
     <div id="status" class="hidden mt-6 p-4 rounded-2xl"></div>
@@ -154,7 +267,9 @@
       <div class="absolute inset-0 bg-black/50"></div>
       <div class="relative glass card p-6 max-w-sm w-full text-center">
         <div class="w-14 h-14 rounded-2xl bg-green-500/20 mx-auto mb-4 flex items-center justify-center">
-          <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
         </div>
         <h3 class="text-xl font-semibold mb-2">สำเร็จ</h3>
         <p id="popupMsg" class="text-white/90 mb-4"></p>
@@ -164,9 +279,10 @@
   </div>
 
   <script>
+    /* ================= CONFIG ================= */
     const APP_SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxKmlulJgGnv8pUqbbOYlK5mRn6jZ_DdQQCKoJ3dExHWl62mDOPhDR5usWbSpC38gzH/exec';
 
-    // ===== Local date helpers (หลีกเลี่ยง UTC shift)
+    /* ============ Local date helpers (หลีกเลี่ยง UTC shift) ============ */
     function toLocalISO(d){ const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
     function getWeekRange(offsetWeek=0){
       const now=new Date(); now.setHours(0,0,0,0);
@@ -176,12 +292,32 @@
       return { start: toLocalISO(monday), end: toLocalISO(friday) };
     }
 
-    // ===== UI base
+    /* ================= TABS ================= */
+    const tabs = [
+      {btn:'tab-1', panel:'panel-1'},
+      {btn:'tab-2', panel:'panel-2'},
+      {btn:'tab-3', panel:'panel-3'},
+    ];
+    function activateTab(idx){
+      tabs.forEach((t,i)=>{
+        document.getElementById(t.btn).setAttribute('aria-selected', i===idx?'true':'false');
+        document.getElementById(t.panel).classList.toggle('active', i===idx);
+      });
+      localStorage.setItem('activeTab', String(idx));
+    }
+    tabs.forEach((t,i)=> document.getElementById(t.btn).addEventListener('click', ()=>activateTab(i)));
+    const savedTab = Number(localStorage.getItem('activeTab'));
+    if(!Number.isNaN(savedTab) && savedTab>=0 && savedTab<tabs.length) activateTab(savedTab);
+
+    /* ================= UI basics ================= */
     const today = toLocalISO(new Date());
     const dateInput = document.getElementById('dateInput');
     dateInput.min = today; dateInput.value = today;
     document.getElementById('rangeStart').min = today;
     document.getElementById('rangeEnd').min = today;
+    // tab3 date (send now)
+    const sendDateInput = document.getElementById('sendDateInput');
+    sendDateInput.min = today; sendDateInput.value = today;
 
     function toast(msg, type='info'){
       const el = document.getElementById('status');
@@ -192,24 +328,32 @@
     function closePopup(){ document.getElementById('popup').classList.add('hidden'); document.getElementById('popup').classList.remove('flex'); }
 
     function setBtnLoading(btn, isLoading, doneLabel='เสร็จ', loadingLabel='กำลังทำงาน...'){
-      if(isLoading){ btn.disabled=true; btn.dataset.prev=btn.innerHTML;
-        btn.innerHTML=`<span class="inline-flex items-center gap-2">
-          <svg class="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-          </svg>${loadingLabel}</span>`;}
-      else{ btn.disabled=false; btn.innerHTML=btn.dataset.prev || doneLabel; }
+      if(isLoading){
+        btn.disabled = true;
+        btn.dataset.prev = btn.innerHTML;
+        btn.innerHTML = `
+          <span class="inline-flex items-center gap-2">
+            <svg class="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            ${loadingLabel}
+          </span>`;
+      }else{
+        btn.disabled = false;
+        btn.innerHTML = btn.dataset.prev || doneLabel;
+      }
     }
 
-    // Toggle AM/PM
+    /* ================= Toggle AM/PM ================= */
     let splitMode=false;
     const fullBtn=document.getElementById('fullBtn'), splitBtn=document.getElementById('splitBtn');
     const fullBox=document.getElementById('fullBox'), splitBox=document.getElementById('splitBox');
     fullBtn.addEventListener('click', ()=>{ splitMode=false; fullBtn.classList.add('bg-white/20'); splitBtn.classList.remove('bg-white/20'); fullBox.classList.remove('hidden'); splitBox.classList.add('hidden'); });
     splitBtn.addEventListener('click', ()=>{ splitMode=true;  splitBtn.classList.add('bg-white/20'); fullBtn.classList.remove('bg-white/20'); splitBox.classList.remove('hidden'); fullBox.classList.add('hidden'); });
 
-    // API helper
-    async function callAPI(action, payload={}) {
+    /* ================= API helper ================= */
+    async function callAPI(action, payload={}){
       const fd = new FormData();
       fd.append('action', action);
       fd.append('payload', JSON.stringify(payload));
@@ -218,7 +362,7 @@
       try { return JSON.parse(text); } catch { return { ok:false, error:'Invalid JSON', raw:text }; }
     }
 
-    // ===== Suggestion UI =====
+    /* ================= Suggestions ================= */
     const suggestWrap = document.getElementById('suggestWrap');
     const suggestEmpty = document.getElementById('suggestEmpty');
     const suggestLoading = document.getElementById('suggestLoading');
@@ -240,9 +384,7 @@
         suggestWrap.innerHTML = `<div class="text-white/80 text-sm">เกิดข้อผิดพลาดในการเชื่อมต่อ</div>`;
       }
     }
-
     function renderSuggestItem(it){
-      // it.location อาจลงท้าย (AM)/(PM) ก็แสดงตามจริง
       const [pureLoc, part] = parsePart(it.location);
       const names = (it.names || []).join(' ');
       return `
@@ -260,41 +402,20 @@
           </div>
         </div>`;
     }
-
-    function parsePart(locLabel){
-      // คืน [สถานที่จริง, '(AM)' หรือ '(PM)' หรือ '' ]
-      const m = /(.*)\s+\((AM|PM)\)$/i.exec(locLabel || '');
-      if(!m) return [locLabel, ''];
-      return [m[1].trim(), `(${m[2].toUpperCase()})`];
-    }
-
+    function parsePart(locLabel){ const m=/(.*)\s+\((AM|PM)\)$/i.exec(locLabel||''); if(!m) return [locLabel,'']; return [m[1].trim(),`(${m[2].toUpperCase()})`]; }
     window.useSuggest = function(loc, mode){
-      if(mode === 'both'){
-        if(!splitMode){
-          document.getElementById('fullLocation').value = loc;
-        }else{
-          document.getElementById('amLocation').value = loc;
-          document.getElementById('pmLocation').value = loc;
-        }
-      }else if(mode === 'am'){
-        splitMode = true;
-        splitBtn.click();
-        document.getElementById('amLocation').value = loc;
-      }else if(mode === 'pm'){
-        splitMode = true;
-        splitBtn.click();
-        document.getElementById('pmLocation').value = loc;
-      }
-      toast(`ใส่สถานที่: ${loc} (${mode.toUpperCase() === 'BOTH' ? 'ทั้งวัน' : mode.toUpperCase()})`);
+      if(mode==='both'){
+        if(!splitMode){ document.getElementById('fullLocation').value = loc; }
+        else{ document.getElementById('amLocation').value = loc; document.getElementById('pmLocation').value = loc; }
+      }else if(mode==='am'){ splitMode=true; splitBtn.click(); document.getElementById('amLocation').value = loc; }
+      else if(mode==='pm'){ splitMode=true; splitBtn.click(); document.getElementById('pmLocation').value = loc; }
+      toast(`ใส่สถานที่: ${loc} (${mode.toUpperCase()==='BOTH'?'ทั้งวัน':mode.toUpperCase()})`);
     };
-
-    // โหลดคำแนะนำเมื่อเปลี่ยนวันที่ / ชื่อ
     document.getElementById('dateInput').addEventListener('change', refreshSuggestions);
     document.getElementById('nameSelect').addEventListener('change', refreshSuggestions);
-    // เรียกครั้งแรก
     refreshSuggestions();
 
-    // ===== Single-day submit (เหมือนเดิม) =====
+    /* ================= Submit (single day) ================= */
     const checkinBtn = document.getElementById('checkinBtn');
     document.getElementById('checkinForm').addEventListener('submit', async (e)=>{
       e.preventDefault();
@@ -320,17 +441,15 @@
         const {ok, upsert, error} = await callAPI('create', payload);
         if(!ok){ toast(error || 'บันทึกไม่สำเร็จ','error'); return; }
         openPopup(upsert ? 'อัปเดตข้อมูลของวันนี้เรียบร้อย' : 'บันทึกเรียบร้อย');
-        // reset เบาๆ
         document.getElementById('fullLocation').value = 'Ari';
         document.getElementById('amLocation').value = 'Ari';
         document.getElementById('pmLocation').value = 'Ari';
-        // อัปเดตคำแนะนำใหม่ เผื่อเพิ่งเพิ่มของเราเอง
         refreshSuggestions();
       }catch(err){ console.error(err); toast('เกิดข้อผิดพลาดในการเชื่อมต่อ','error'); }
       finally{ setBtnLoading(checkinBtn, false, 'Check In'); }
     });
 
-    // ===== Bulk (ย่อ) =====
+    /* ================= Bulk Create ================= */
     function buildCommonBulkPayload(){
       const name = document.getElementById('nameSelect').value.trim();
       if(!name){ toast('กรุณาเลือกผู้ใช้งานก่อน','error'); return null; }
@@ -391,7 +510,7 @@
       finally{ setBtnLoading(bulkRangeBtn, false, 'บันทึกแบบช่วงวันที่'); }
     });
 
-    // ===== View schedule (คงเดิมพร้อมสปินเนอร์) =====
+    /* ================= View schedule ================= */
     const viewBtn = document.getElementById('viewBtn');
     viewBtn.addEventListener('click', async ()=>{
       const name = document.getElementById('viewName').value.trim();
@@ -412,7 +531,6 @@
         list.innerHTML = items.map(row => renderItem(row)).join('');
       }catch(err){ console.error(err); list.innerHTML = `<div class="text-white/80">เกิดข้อผิดพลาดในการเชื่อมต่อ</div>`; }
     }
-
     function renderItem(entry){
       const locationDisplay = entry.split
         ? `<div class="text-sm text-white/90">🌅 AM: ${entry.am || '-'}</div><div class="text-sm text-white/90">🌆 PM: ${entry.pm || '-'}</div>`
@@ -424,21 +542,23 @@
               <div class="font-semibold">${formatThai(entry.date)}</div>
               ${locationDisplay}
             </div>
-            <button class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20" onclick="openEdit('${entry.rowId}', ${entry.split ? 'true':'false'}, '${entry.date}', '${escapeHTML(entry.am||'')}', '${escapeHTML(entry.pm||'')}', '${escapeHTML(entry.location||'')}')">แก้ไข</button>
+            <button class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20"
+              onclick="openEdit('${entry.rowId}', ${entry.split ? 'true':'false'}, '${entry.date}', '${escapeHTML(entry.am||'')}', '${escapeHTML(entry.pm||'')}', '${escapeHTML(entry.location||'')}')">
+              แก้ไข
+            </button>
           </div>
           <div id="edit-${entry.rowId}" class="hidden mt-4 pt-4 border-t border-white/10"></div>
         </div>`;
     }
-
     function formatThai(iso){ const d=new Date(iso); const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']; return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()+543}`; }
     function escapeHTML(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
-    // ===== Edit (คงเดิม) =====
+    /* ================= Edit ================= */
     window.openEdit = function(rowId, split, date, am, pm, location){
       const box = document.getElementById(`edit-${rowId}`); const isSplit=!!split;
       box.innerHTML = `
         <div class="space-y-3">
-          <div><label class="block text-sm font-semibold mb-1">วันที่</label><input type="date" id="ed-date-${rowId}" class="input w-full" value="${date}" min="${today}"></div>
+          <div><label class="block text-sm font-semibold mb-1">วันที่</label><input type="date" id="ed-date-${rowId}" class="input" value="${date}" min="${today}"></div>
           <div><label class="block text-sm font-semibold mb-1">ช่วงเวลา</label>
             <div class="flex pill p-1">
               <button type="button" id="ed-full-${rowId}" class="flex-1 py-2 rounded-xl ${!isSplit?'bg-white/20':''}">เต็มวัน</button>
@@ -447,12 +567,12 @@
           </div>
           <div id="ed-fullBox-${rowId}" class="${isSplit?'hidden':''}">
             <label class="block text-sm font-semibold mb-1">สถานที่ (ทั้งวัน)</label>
-            <input type="text" id="ed-fullLoc-${rowId}" class="input w-full" value="${location || am || ''}">
+            <input type="text" id="ed-fullLoc-${rowId}" class="input" value="${location || am || ''}">
             <p class="text-xs text-white/70 mt-1">* บันทึกแล้วจะตั้งค่า AM และ PM เป็นสถานที่เดียวกัน</p>
           </div>
           <div id="ed-splitBox-${rowId}" class="${isSplit?'':'hidden'} space-y-3">
-            <div><label class="block text-sm font-semibold mb-1">🌅 AM</label><input type="text" id="ed-am-${rowId}" class="input w-full" value="${am || ''}"></div>
-            <div><label class="block text-sm font-semibold mb-1">🌆 PM</label><input type="text" id="ed-pm-${rowId}" class="input w-full" value="${pm || ''}"></div>
+            <div><label class="block text-sm font-semibold mb-1">🌅 AM</label><input type="text" id="ed-am-${rowId}" class="input" value="${am || ''}"></div>
+            <div><label class="block text-sm font-semibold mb-1">🌆 PM</label><input type="text" id="ed-pm-${rowId}" class="input" value="${pm || ''}"></div>
           </div>
           <div class="flex gap-3 pt-2">
             <button id="saveBtn-${rowId}" class="btn flex-1 py-2">บันทึก</button>
@@ -493,6 +613,91 @@
       }catch(err){ console.error(err); toast('เกิดข้อผิดพลาดในการเชื่อมต่อ','error'); }
       finally{ setBtnLoading(saveBtn, false, 'บันทึก'); }
     }
+
+    /* ================= LINE Sender ================= */
+    const weekdayWrap = document.getElementById('weekdayWrap');
+    const dowLabels = ['อา','จ','อ','พ','พฤ','ศ','ส']; // 0..6 (JS)
+    const isoDowToJsIndex = d => (d % 7); // 1..7 -> 1..6,0
+    const jsIndexToIso = i => (i === 0 ? 7 : i); // 0..6 -> 7,1..6
+
+    const dayButtons = [];
+    (function buildWeekButtons(){
+      for(let i=0;i<7;i++){
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'px-2 py-2 rounded-lg bg-white/10 hover:bg-white/20';
+        b.textContent = dowLabels[i];
+        b.dataset.active = (i>=1 && i<=5) ? '1':'0'; // ค่าเริ่มต้น จ–ศ
+        toggleDayVisual(b);
+        b.addEventListener('click', ()=>{ b.dataset.active = b.dataset.active === '1' ? '0':'1'; toggleDayVisual(b); });
+        weekdayWrap.appendChild(b);
+        dayButtons.push(b);
+      }
+    })();
+    function toggleDayVisual(btn){
+      if(btn.dataset.active === '1'){
+        btn.classList.add('bg-emerald-500/20','border','border-emerald-400/40');
+      } else {
+        btn.classList.remove('bg-emerald-500/20','border','border-emerald-400/40');
+      }
+    }
+
+    async function loadSchedule(){
+      const {ok, config, error} = await callAPI('getSchedule', {});
+      if(!ok){ document.getElementById('schedStatus').textContent = error || 'โหลดตารางส่งไม่สำเร็จ'; return; }
+      document.getElementById('schedEnabled').checked = !!config.enabled;
+      document.getElementById('schedTime').value = config.time || '08:30';
+      document.getElementById('schedSkipHolidays').checked = !!config.skipHolidays;
+
+      dayButtons.forEach((b,i)=>{ b.dataset.active='0'; toggleDayVisual(b); });
+      (config.days || [1,2,3,4,5]).forEach(iso=>{
+        const idx = isoDowToJsIndex(iso);
+        dayButtons[idx].dataset.active = '1';
+        toggleDayVisual(dayButtons[idx]);
+      });
+
+      document.getElementById('schedStatus').textContent =
+        config.enabled
+          ? `จะส่งอัตโนมัติทุกวันเวลา ${config.time} (วัน: ${config.days.join(',')})`
+          : 'ปิดการส่งอัตโนมัติอยู่';
+    }
+    loadSchedule();
+    document.getElementById('reloadSchedBtn').addEventListener('click', loadSchedule);
+
+    document.getElementById('saveSchedBtn').addEventListener('click', async ()=>{
+      const btn = document.getElementById('saveSchedBtn');
+      const enabled = document.getElementById('schedEnabled').checked;
+      const time = document.getElementById('schedTime').value;
+      const skipHolidays = document.getElementById('schedSkipHolidays').checked;
+
+      const days = dayButtons
+        .map((b,i)=> b.dataset.active==='1' ? jsIndexToIso(i) : null)
+        .filter(Boolean);
+
+      if(!/^\d{2}:\d{2}$/.test(time)){ toast('รูปแบบเวลาไม่ถูกต้อง (HH:mm)','error'); return; }
+      if(enabled && days.length===0){ toast('กรุณาเลือกอย่างน้อย 1 วัน','error'); return; }
+
+      try{
+        setBtnLoading(btn, true, 'บันทึกตารางส่ง', 'กำลังบันทึก...');
+        const res = await callAPI('saveSchedule', { enabled, time, days, skipHolidays });
+        if(!res.ok){ toast(res.error || 'บันทึกไม่สำเร็จ','error'); return; }
+        toast('บันทึกตารางส่งเรียบร้อย');
+        loadSchedule();
+      } finally { setBtnLoading(btn, false, 'บันทึกตารางส่ง'); }
+    });
+
+    // ส่งทันที (ใช้วันที่ในแท็บ 3)
+    document.getElementById('sendNowBtn').addEventListener('click', async ()=>{
+      const btn = document.getElementById('sendNowBtn');
+      const date = document.getElementById('sendDateInput').value;
+      if(!date){ toast('กรุณาเลือกวันที่ก่อน','error'); return; }
+      try{
+        setBtnLoading(btn, true, 'ส่งเข้าไลน์เดี๋ยวนี้', 'กำลังส่ง...');
+        const res = await callAPI('pushNow', { date });
+        if(!res.ok){ toast(res.error || 'ส่งไม่สำเร็จ','error'); return; }
+        openPopup('ส่งเข้าไลน์เรียบร้อย');
+      } finally { setBtnLoading(btn, false, 'ส่งเข้าไลน์เดี๋ยวนี้'); }
+    });
   </script>
 </body>
 </html>
